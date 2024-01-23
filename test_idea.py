@@ -1,6 +1,9 @@
 import numpy as np
 import random
 from prettytable import PrettyTable
+from create_matrix_H_pub import create_matrix_H_pub
+from ISD import ISD
+import time
 
 def create_vector_weight_t(n, t):
     list_val = random.sample([i for i in range(n)], t)
@@ -12,7 +15,6 @@ def create_vector_weight_t(n, t):
 def create_result_P2_P3(P_2, P_3):
     result = np.dot(P_2, P_3) % 2
     list_position_1 = np.array([0] * len(P_2))
-    list_position_2 = np.array([0] * len(P_2))
     for i in range(len(P_2)):
         for j in range(len(P_3)):
             if result[i][j] == 1:
@@ -53,7 +55,15 @@ def main_2(n, r_D, count):
         if np.array_equal(s, np.dot(np.dot(now_vec, E_1), H.T) % 2):
             print(*now_vec, *(np.dot(np.dot(now_vec, E_1), H.T) % 2))
 
-def main_3(n, d, t, r_D, value_count_e):
+
+def permutation_in_matrix(perm):
+    matrix = np.zeros((len(perm), len(perm)), dtype=int)
+    for i in range(len(perm)):
+        matrix[i][perm[i]] = 1
+    return matrix
+
+
+def main_3(n, t, value_count_e):
     my_table = PrettyTable()
     my_table.field_names = [i for i in range(n)]
     E_pub = np.load("Matrix_and_other\\E_pub.npy")
@@ -86,10 +96,12 @@ def main_3(n, d, t, r_D, value_count_e):
     print("\n", D_list, sep="")
     print(my_table)
     print(count_2)
+    return permutation_in_matrix(composition_permutation_1)
 
 
 
 if __name__ == "__main__":
     # main(100, 12, 4, 4, 100)
     # main_2(100, 2, 100)
-    main_3(200, 24, 8, 8, 50)
+    main_3(255, 11, 10)
+

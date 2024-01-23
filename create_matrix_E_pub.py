@@ -16,13 +16,13 @@ def create_matrix_permutation_P(n, name):
     write_in_np_save(f"permutation_matrix_P_{name}", matrix_permutation_P)
     return matrix_permutation_P
 
-def create_matrix_random_W(n):
-    matrix_random = [[random.randint(0,1) if i > j else 0 for j in range(n)] for i in range(n)]
+def create_matrix_random_nonsingular(n, name):
+    matrix_random = [[random.randint(0, 1) if i > j else 0 for j in range(n)] for i in range(n)]
     for i in range(n):
         matrix_random[i][i] = 1
     matrix_random = random_matrix_from_given_elementary_transform(matrix_random, 1000, 2)
     matrix_random = np.array(matrix_random)
-    write_in_np_save("random_matrix_W", matrix_random)
+    write_in_np_save(f"random_matrix_{name}", matrix_random)
     return matrix_random
 
 def create_matrix_D(n, r_D):
@@ -52,8 +52,26 @@ def create_matrix_G_and_U_and_H(k, n):
     U, G, H = U.astype(int), G.astype(int), H.astype(int)
     return U, G, H
 
-def create_E_pub(k, n, r_D):
-    W = create_matrix_random_W(n)
+def create_E_pub(n, k, r_D):
+    W, M = create_matrix_random_nonsingular(n, "W"), create_matrix_random_nonsingular(n, "M")
+    D = create_matrix_D(n, r_D)
+    P_1 = create_matrix_permutation_P(n, "1")
+    P_2 = create_matrix_permutation_P(n, "2")
+    while check_nonsingular((W @ D @ P_1 + P_2) % 2) == False:
+        P_1 = create_matrix_permutation_P(n, "1")
+        P_2 = create_matrix_permutation_P(n, "2")
+        print("*")
+    G, U = create_matrix_G_and_U(k, n)
+    E_pub = np.dot((np.dot(np.dot(W, D), (np.dot(U, G) + P_1)) + P_2), M) % 2
+    E_pub = np.round(E_pub)
+    E_pub = E_pub.astype(int)
+    write_in_np_save("G", G)
+    write_in_np_save("G_pub_new", np.dot(G, M) % 2)
+    write_in_np_save(f"E_pub", E_pub)
+    return E_pub
+
+def create_E_pub_with_permutation_matrix(n, k, r_D):
+    W = create_matrix_random_nonsingular(n, "W")
     D = create_matrix_D(n, r_D)
     P_1 = create_matrix_permutation_P(n, "1")
     P_2 = create_matrix_permutation_P(n, "2")
@@ -63,15 +81,16 @@ def create_E_pub(k, n, r_D):
         print("*")
     G, U = create_matrix_G_and_U(k, n)
     P_3 = create_matrix_permutation_P(n, "3")
-    # E_pub = ((W @ D @ (U @ G + P_1) + P_2) @ P_3) % 2
     E_pub = np.dot((np.dot(np.dot(W, D), (np.dot(U, G) + P_1)) + P_2), P_3) % 2
     E_pub = np.round(E_pub)
     E_pub = E_pub.astype(int)
+    write_in_np_save("G", G)
+    write_in_np_save("G_pub_new", np.dot(G, P_3) % 2)
     write_in_np_save(f"E_pub", E_pub)
     return E_pub
 
 def create_matrix_erasures(n, k, r_D):
-    W = create_matrix_random_W(n)
+    W = create_matrix_random_nonsingular(n)
     D = create_matrix_D(n, r_D)
     P_1 = create_matrix_permutation_P(n, "_for_erasures")
     U, G, H = create_matrix_G_and_U_and_H(k, n)
@@ -82,9 +101,24 @@ def create_matrix_erasures(n, k, r_D):
     write_in_np_save("matrix_H", H)
     return E_1, H
 
+def create_matrix_E_1_and_E_2_and_all(n, k, r_D):
+    W, M = create_matrix_random_nonsingular(n, "W_new"), create_matrix_random_nonsingular(n, "M_new")
+    D = create_matrix_D(n, r_D)
+    U, G, H = create_matrix_G_and_U_and_H(k, n)
+    P_1, P_2 = create_matrix_permutation_P(n, "_for_erasures_new"), create_matrix_permutation_P(n, "_for_errors_new")
+    E_1 = np.dot(np.dot(np.dot(W, D), np.dot(U, G) + P_1), M) % 2
+    E_2 = np.dot((np.dot(U, G) + P_2), M) % 2
+    write_in_np_save("G_new", G)
+    write_in_np_save("G_pub_new", np.dot(G, M) % 2)
+    write_in_np_save(f"E_1_new", E_1)
+    write_in_np_save(f"E_2_new", E_2)
+    write_in_np_save("matrix_H_new", H)
+    return E_1, E_2
+
 
 if __name__ == "__main__":
-    E_pub = create_E_pub(100, 200, 8)
+    E_pub = create_E_pub(255, 123, 10)
     # print(create_matrix_erasures(100, 50, 5))
-
+    # create_matrix_E_1_and_E_2_and_all(255, 191, 6)
+    # create_matrix_E_1_and_E_2_and_all(255, 123, 10)
 
