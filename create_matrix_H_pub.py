@@ -57,7 +57,7 @@ def take_place(matrix, o):
     if o == list(range(len(matrix[0]))):
         return matrix
     result = np.copy(matrix)
-    for i in range(len(matrix)):
+    for i in range(len(matrix[0])):
         result[:, o[i]] = matrix[: , i]
     return result
 
